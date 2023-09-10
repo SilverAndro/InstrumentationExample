@@ -103,6 +103,10 @@ public class ExampleMod implements PreLaunchEntrypoint {
 		ClassFileTransformer transformer = new ClassFileTransformer() {
 			@Override
 			public byte[] transform(Module module, ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+				// prevent crashing on stray load
+				if (!className.equals("java/util/Random"))
+					return classfileBuffer;
+
 				ClassNode node = new ClassNode();
 				ClassReader reader = new ClassReader(classfileBuffer);
 				reader.accept(node, 0);
