@@ -91,6 +91,14 @@ public class ExampleMod implements PreLaunchEntrypoint {
 		// get the instrumentation object
 		Instrumentation instrumentation = (Instrumentation) field.get(null);
 
+		ClassFileTransformer logger = new ClassFileTransformer() {
+			@Override
+			public byte[] transform(Module module, ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+				System.out.println("Got " + className);
+				return classfileBuffer;
+			}
+		};
+
 		// patch Random.nextInt to always return 4
 		ClassFileTransformer transformer = new ClassFileTransformer() {
 			@Override
@@ -116,6 +124,11 @@ public class ExampleMod implements PreLaunchEntrypoint {
 				return writer.toByteArray();
 			}
 		};
+
+		// add our logging transformer
+		// normally this could watch for and mass transform newly loaded classes
+		// (or mass *re*transform if you give it permission)
+		instrumentation.addTransformer(logger);
 
 		// add the transformer, make sure to set canRetransform for already loaded classes, or it'll silently do nothing
 		instrumentation.addTransformer(transformer, true);
